@@ -28,7 +28,7 @@
 #include "tsl_user.h"
 #include "stm32l_discovery_lcd.h"
 #include "discover_functions.h"
-#include <stdbool.h>
+#include "discover_board.h"
 
 // PB6 = LED_GREEN
 // #define LED_GREEN_TOGGLE {GPIOB->ODR  ^= (1<<7);}
@@ -446,8 +446,8 @@ typedef struct {
 #define TOUCH_DETECTOR_HIGHEST_PERCENT 90
 
 #define TOUCH_DETECTOR_INITIAL_STATE {\
-		false,\
-		false, \
+		FALSE,\
+		FALSE, \
 		TOUCH_DETECTOR_HIGHEST_PERCENT,\
 		TOUCH_DETECTOR_LOWEST_PERCENT,\
 		NO_RESULT\
@@ -459,7 +459,7 @@ void timerStart(int limit) {
 }
 
 bool timerLimitExceeded() {
-	return false;
+	return FALSE;
 }
 
 void timerStop() {
@@ -470,7 +470,7 @@ void TouchDetectStateMachine() {
 	int limit = 0;
 
 	if (!touchDetector.gestureIsProcessed && currentlyPressed) {
-		touchDetector.gestureIsProcessed = true;
+		touchDetector.gestureIsProcessed = TRUE;
 		timerStart(limit);
 	}
 
@@ -478,7 +478,7 @@ void TouchDetectStateMachine() {
 		// Cancel because finger is not touching sensor
 		// or gesture time limit is exceeded
 		if (!currentlyPressed || timerLimitExceeded()) {
-			touchDetector.gestureIsProcessed = false;
+			touchDetector.gestureIsProcessed = FALSE;
 			timerStop();
 			touchDetector.result = GESTURE_CANCELLED;
 		}
@@ -493,7 +493,7 @@ void TouchDetectStateMachine() {
 
 		if (touchDetector.minDetectedPercentage <= TOUCH_DETECTOR_LOWEST_PERCENT &&
 				touchDetector.maxDetectedPercentage >= TOUCH_DETECTOR_HIGHEST_PERCENT) {
-			touchDetector.gestureIsProcessed = false;
+			touchDetector.gestureIsProcessed = FALSE;
 			timerStop();
 			touchDetector.result = GESTURE_FINISHED;
 		}
