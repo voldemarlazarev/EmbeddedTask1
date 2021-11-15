@@ -28,6 +28,7 @@
 #include "tsl_user.h"
 #include "stm32l_discovery_lcd.h"
 #include "discover_functions.h"
+#include <stdbool.h>
 
 // PB6 = LED_GREEN
 // #define LED_GREEN_TOGGLE {GPIOB->ODR  ^= (1<<7);}
@@ -321,7 +322,7 @@ void ProcessSensors(void)
   Message[1] = ' ';
   Message[2] = ' ';
   /*Add "%" in message*/ 
-  Message[3] = '°' ;
+  Message[3] = 'ï¿½' ;
   Message[4] = '/' ;
   Message[5] = '%' ;
 
@@ -339,7 +340,7 @@ void ProcessSensors(void)
   /*Convert percent value in char and store it in message*/    
   convert_into_char(percent_value,Message);
   /*Add "%" in message*/ 
-  Message[3] = '°' ;
+  Message[3] = 'ï¿½' ;
   Message[4] = '/' ;
   Message[5] = '%' ;
   /*Display message*/
@@ -421,6 +422,82 @@ void TSL_user_SetThresholds(void)
   //MyTKeys_Param[0].DetectInTh -= 10;
   //MyTKeys_Param[0].DetectOutTh -= 10;
   
+}
+
+//enum TouchDetectState {
+//	NOT_PRESSED,
+//	PRESSED
+//};
+typedef enum {
+	NO_RESULT,
+	GESTURE_FINISHED,
+	GESTURE_CANCELLED
+} TouchDetectorResult;
+
+typedef struct {
+	bool gestureIsProcessed;
+	bool timerStarted;
+	int minDetectedPercentage;
+	int maxDetectedPercentage;
+	TouchDetectorResult result;
+} TouchDetector;
+
+#define TOUCH_DETECTOR_LOWEST_PERCENT 10
+#define TOUCH_DETECTOR_HIGHEST_PERCENT 90
+
+#define TOUCH_DETECTOR_INITIAL_STATE {\
+		false,\
+		false, \
+		TOUCH_DETECTOR_HIGHEST_PERCENT,\
+		TOUCH_DETECTOR_LOWEST_PERCENT,\
+		NO_RESULT\
+	};
+
+static TouchDetector touchDetector = TOUCH_DETECTOR_INITIAL_STATE;
+
+void timerStart(int limit) {
+}
+
+bool timerLimitExceeded() {
+	return false;
+}
+
+void timerStop() {
+}
+
+void TouchDetectStateMachine() {
+	bool currentlyPressed = getPressed();
+	int limit = 0;
+
+	if (!touchDetector.gestureIsProcessed && currentlyPressed) {
+		touchDetector.gestureIsProcessed = true;
+		timerStart(limit);
+	}
+
+	if (touchDetector.gestureIsProcessed) {
+		// Cancel because finger is not touching sensor
+		// or gesture time limit is exceeded
+		if (!currentlyPressed || timerLimitExceeded()) {
+			touchDetector.gestureIsProcessed = false;
+			timerStop();
+			touchDetector.result = GESTURE_CANCELLED;
+		}
+
+		// Update percentage
+		int currentTouchPercentage = getPercentage();
+
+		if (currentTouchPercentage > touchDetector.maxDetectedPercentage)
+			touchDetector.maxDetectedPercentage = currentTouchPercentage;
+		if (currentTouchPercentage < touchDetector.minDetectedPercentage)
+			touchDetector.minDetectedPercentage = currentTouchPercentage;
+
+		if (touchDetector.minDetectedPercentage <= TOUCH_DETECTOR_LOWEST_PERCENT &&
+				touchDetector.maxDetectedPercentage >= TOUCH_DETECTOR_HIGHEST_PERCENT) {
+			touchDetector.gestureIsProcessed = false;
+			timerStop();
+			touchDetector.result = GESTURE_FINISHED;
+		}
+	}
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
