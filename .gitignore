@@ -1,0 +1,6 @@
+Projects/AN3413-Current_consumption_touch_sensing/TrueSTUDIO/STM32L152RC\(32L152C-Discovery\)/Debug/User/*
+*.map
+*.list
+*.elf
+*.o
+
