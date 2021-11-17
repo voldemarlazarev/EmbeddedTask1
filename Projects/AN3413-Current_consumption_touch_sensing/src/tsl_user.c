@@ -233,6 +233,14 @@ void TSL_user_Init(void)
   TSL_user_SetThresholds(); // Init thresholds for each object individually
 }
 
+typedef enum {
+	NO_RESULT = 0,
+	GESTURE_FINISHED = 1,
+	GESTURE_CANCELLED = 2
+} TouchDetectorResult;
+
+TouchDetectorResult swipeDetectorStateMachine(bool pressed, uint32_t currentPercentage);
+
 
 /**
   * @brief  Execute STMTouch Driver main State machine
@@ -326,26 +334,33 @@ void ProcessSensors(void)
   Message[4] = '/' ;
   Message[5] = '%' ;
 
-    if (!process_sensor) 
-  {
-    /*Display message*/
-    LCD_GLASS_DisplayStrDeci(Message);  
-    return;
-  }
+//    if (!process_sensor)
+//  {
+//    /*Display message*/
+//    LCD_GLASS_DisplayStrDeci(Message);
+//    return;
+//  }
   
   /* get Slider position and convert it in percent*/
   percent_value = MyLinRots[0].p_Data->Position ;
   percent_value *= 10000;
   percent_value /= Max_Value;
+
+  static volatile uint32_t detected[1000];
+  static unsigned int i = 0;
+  detected[i++] = percent_value;
+
+  TouchDetectorResult result = swipeDetectorStateMachine(process_sensor, percent_value);
   /*Convert percent value in char and store it in message*/    
   convert_into_char(percent_value,Message);
-  /*Add "%" in message*/ 
-  Message[3] = '�' ;
-  Message[4] = '/' ;
-  Message[5] = '%' ;
+  /*Add "%" in message*/
+
+  Message[3] = (result == NO_RESULT) ? 'N' : ' ';
+  Message[4] = (result == GESTURE_CANCELLED) ? 'C' : ' ';
+  Message[5] = (result == GESTURE_FINISHED) ? 'F' : ' ';
   /*Display message*/
-  LCD_GLASS_DisplayStrDeci(Message);  
-   
+  LCD_GLASS_DisplayStrDeci(Message);
+
 }
 
 /**
@@ -428,32 +443,24 @@ void TSL_user_SetThresholds(void)
 //	NOT_PRESSED,
 //	PRESSED
 //};
-typedef enum {
-	NO_RESULT,
-	GESTURE_FINISHED,
-	GESTURE_CANCELLED
-} TouchDetectorResult;
 
 typedef struct {
-	bool gestureIsProcessed;
+	bool gestureIsBeingProcessed;
 	bool timerStarted;
-	int minDetectedPercentage;
-	int maxDetectedPercentage;
-	TouchDetectorResult result;
-} TouchDetector;
+	int expectedPercentage;
+} SwipeDetector;
 
-#define TOUCH_DETECTOR_LOWEST_PERCENT 10
-#define TOUCH_DETECTOR_HIGHEST_PERCENT 90
+#define SWIPE_DETECTOR_LOWEST_PERCENT (10*100)
+#define SWIPE_DETECTOR_HIGHEST_PERCENT (90*100)
+#define SWIPE_DETECTOR_MAX_GAP (7*100)
 
 #define TOUCH_DETECTOR_INITIAL_STATE {\
 		FALSE,\
-		FALSE, \
-		TOUCH_DETECTOR_HIGHEST_PERCENT,\
-		TOUCH_DETECTOR_LOWEST_PERCENT,\
-		NO_RESULT\
+		FALSE,\
+		SWIPE_DETECTOR_LOWEST_PERCENT,\
 	};
 
-static TouchDetector touchDetector = TOUCH_DETECTOR_INITIAL_STATE;
+static SwipeDetector swipeDetector = TOUCH_DETECTOR_INITIAL_STATE;
 
 void timerStart(int limit) {
 }
@@ -465,39 +472,49 @@ bool timerLimitExceeded() {
 void timerStop() {
 }
 
-void TouchDetectStateMachine() {
-	bool currentlyPressed = getPressed();
+TouchDetectorResult swipeDetectorStateMachine(bool currentlyPressed, uint32_t currentPercentage) {
 	int limit = 0;
 
-	if (!touchDetector.gestureIsProcessed && currentlyPressed) {
-		touchDetector.gestureIsProcessed = TRUE;
+	if (!swipeDetector.gestureIsBeingProcessed && currentlyPressed) {
+		swipeDetector.gestureIsBeingProcessed = TRUE;
+		swipeDetector.expectedPercentage = SWIPE_DETECTOR_LOWEST_PERCENT;
 		timerStart(limit);
+		swipeDetector.timerStarted = TRUE;
 	}
 
-	if (touchDetector.gestureIsProcessed) {
+	if (swipeDetector.gestureIsBeingProcessed) {
 		// Cancel because finger is not touching sensor
 		// or gesture time limit is exceeded
 		if (!currentlyPressed || timerLimitExceeded()) {
-			touchDetector.gestureIsProcessed = FALSE;
+			swipeDetector.gestureIsBeingProcessed = FALSE;
 			timerStop();
-			touchDetector.result = GESTURE_CANCELLED;
+			return GESTURE_CANCELLED;
 		}
 
-		// Update percentage
-		int currentTouchPercentage = getPercentage();
+		if (currentPercentage < SWIPE_DETECTOR_LOWEST_PERCENT)
+			currentPercentage = SWIPE_DETECTOR_LOWEST_PERCENT;
+		if (currentPercentage > SWIPE_DETECTOR_HIGHEST_PERCENT)
+			currentPercentage = SWIPE_DETECTOR_HIGHEST_PERCENT;
 
-		if (currentTouchPercentage > touchDetector.maxDetectedPercentage)
-			touchDetector.maxDetectedPercentage = currentTouchPercentage;
-		if (currentTouchPercentage < touchDetector.minDetectedPercentage)
-			touchDetector.minDetectedPercentage = currentTouchPercentage;
-
-		if (touchDetector.minDetectedPercentage <= TOUCH_DETECTOR_LOWEST_PERCENT &&
-				touchDetector.maxDetectedPercentage >= TOUCH_DETECTOR_HIGHEST_PERCENT) {
-			touchDetector.gestureIsProcessed = FALSE;
+		if (currentPercentage >= swipeDetector.expectedPercentage &&
+				currentPercentage < swipeDetector.expectedPercentage + SWIPE_DETECTOR_MAX_GAP) {
+			swipeDetector.expectedPercentage = currentPercentage;
+			return NO_RESULT;
+		}
+		else {
+			swipeDetector.gestureIsBeingProcessed = FALSE;
 			timerStop();
-			touchDetector.result = GESTURE_FINISHED;
+			return GESTURE_CANCELLED;
+		}
+
+		if (swipeDetector.expectedPercentage >= SWIPE_DETECTOR_HIGHEST_PERCENT){
+			swipeDetector.gestureIsBeingProcessed = FALSE;
+			timerStop();
+			return GESTURE_FINISHED;
 		}
 	}
+
+	return NO_RESULT;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
