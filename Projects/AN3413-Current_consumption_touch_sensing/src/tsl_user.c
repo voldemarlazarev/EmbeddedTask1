@@ -294,12 +294,12 @@ TSL_Status_enum_T TSL_user_Action(void)
       LED_BLUE_TOGGLE;
       if (TSL_ecs_Process(&MyObjGroup) == TSL_STATUS_OK)
       {
-        LED_GREEN_ON;
+//        LED_GREEN_ON;
         process_sensor = 0;
       }
       else
       {
-        LED_GREEN_OFF;
+//        LED_GREEN_OFF;
         process_sensor = 1;
       }
     }
@@ -357,8 +357,10 @@ void ProcessSensors(void)
 
   SwipeDetectorResult result = swipeDetectorStateMachine(process_sensor, percent_value);
   static int nFinished = 0;
-  if (result == SWD_GESTURE_FINISHED)
+  if (result == SWD_GESTURE_FINISHED) {
 	  ++nFinished;
+	  LED_GREEN_TOGGLE;
+  }
 
   /*Convert percent value in char and store it in message*/    
   convert_into_char(percent_value,Message);
@@ -464,7 +466,7 @@ typedef struct {
 
 #define SWD_LOWEST_PERCENT (10*100)
 #define SWD_HIGHEST_PERCENT (90*100)
-#define SWD_MAX_GAP (23*100)
+#define SWD_MAX_GAP (27*100)
 
 static SwipeDetector swipeDetector = {
 		SWD_STATE_WAITING_FOR_TOUCH,
