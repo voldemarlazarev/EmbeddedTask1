@@ -243,6 +243,7 @@ typedef enum {
 
 SwipeDetectorResult swipeDetectorStateMachine(bool pressed, uint32_t currentPercentage);
 
+bool LD3_must_be_on = FALSE;
 
 /**
   * @brief  Execute STMTouch Driver main State machine
@@ -275,7 +276,6 @@ TSL_Status_enum_T TSL_user_Action(void)
     ConfigDone=0;
     idx_bank++;
   }
-  
 
   if(idx_bank == TSLPRM_TOTAL_BANKS)
   {
@@ -348,17 +348,18 @@ void ProcessSensors(void)
   percent_value *= 10000;
   percent_value /= Max_Value;
 
-#define LIMIT1 1000
-
-  static volatile uint32_t detected[LIMIT1];
-  static unsigned int i = 0;
-  if (i < LIMIT1)
-	  detected[i++] = percent_value;
+//#define LIMIT1 1000
+//
+//  static volatile uint32_t detected[LIMIT1];
+//  static unsigned int i = 0;
+//  if (i < LIMIT1)
+//	  detected[i++] = percent_value;
 
   SwipeDetectorResult result = swipeDetectorStateMachine(process_sensor, percent_value);
   static int nFinished = 0;
   if (result == SWD_GESTURE_FINISHED) {
 	  ++nFinished;
+
 	  LED_GREEN_TOGGLE;
   }
 
@@ -482,6 +483,27 @@ bool timerLimitExceeded() {
 }
 
 void timerStop() {
+}
+
+#define TIMER_LIMIT_0 200
+#define TIMER_LIMIT_1 500
+#define TIMER_LIMIT_2 1000
+uint32_t swipeTimeLimit = TIMER_LIMIT_0;
+bool swipeTimeLimitChanged = FALSE;
+
+void selectNextTimerLimit() {
+	switch(swipeTimeLimit) {
+	case TIMER_LIMIT_0:
+		swipeTimeLimit = TIMER_LIMIT_1;
+		break;
+	case TIMER_LIMIT_1:
+		swipeTimeLimit = TIMER_LIMIT_2;
+		break;
+	case TIMER_LIMIT_2:
+		swipeTimeLimit = TIMER_LIMIT_0;
+		break;
+	}
+	swipeTimeLimitChanged = TRUE;
 }
 
 SwipeDetectorResult swipeDetectorStateMachine(bool currentlyTouching, uint32_t currentPercentage) {

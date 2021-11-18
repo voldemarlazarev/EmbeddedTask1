@@ -170,79 +170,81 @@ void UserButtonHandler (void)
       i++;
       if (i == 0x0100000)
       {
-        /* set autotest flag in E²prom*/
+        /* set autotest flag in Eï¿½prom*/
         AUTOTEST(TRUE) ; 
         return;
       }
     }
  
-  /* if autotest is set in E²prom exit interrupt handler */  
-  if (self_test)
-    return ;
+  /* if autotest is set in Eï¿½prom exit interrupt handler */  
+//  if (self_test)
+//    return ;
      
   /* Go to next state of state machine*/
-    state_machine++;
-    if (state_machine == MAX_STATE)
-      state_machine = STATE_VREF;
+//    state_machine++;
+//    if (state_machine == MAX_STATE)
+//      state_machine = STATE_VREF;
+
+    selectNextTimerLimit();
           
     /* To update Bar graph & leds*/  
-    switch (state_machine)
-    {
-      case STATE_VREF:
-              GPIO_HIGH(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
-              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
-              BAR0_OFF;
-              BAR1_OFF;
-              BAR2_OFF;
-              BAR3_OFF;
-              break;
-              
-      case STATE_SLIDER_VALUE:
-             GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
-             GPIO_HIGH(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
-             break;
-              
-      case STATE_SLIDER_BUTTON:
-             GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	        
-             GPIO_HIGH(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
-             break;
-          
-      case STATE_ICC_RUN:
-              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
-              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	        
-              BAR0_ON;
-              BAR1_OFF;
-              BAR2_OFF;
-              BAR3_OFF;
-              break;
-              
-      case STATE_ICC_LP_RUN:
-              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
-              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
-              BAR0_ON;
-              BAR1_ON;
-              BAR2_OFF;
-              BAR3_OFF;
-              break;
-
-      case STATE_ICC_STOP:
-              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
-              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
-              BAR0_ON;
-              BAR1_ON;
-              BAR2_ON;
-              BAR3_OFF;
-              break;              
-      
-      case STATE_ICC_STBY:
-              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
-              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
-              BAR0_ON;
-              BAR1_ON;
-              BAR2_ON;
-              BAR3_ON;
-              break;					
-    }	  
+//    switch (state_machine)
+//    {
+//      case STATE_VREF:
+//              GPIO_HIGH(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//              BAR0_OFF;
+//              BAR1_OFF;
+//              BAR2_OFF;
+//              BAR3_OFF;
+//              break;
+//
+//      case STATE_SLIDER_VALUE:
+//             GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//             GPIO_HIGH(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//             break;
+//
+//      case STATE_SLIDER_BUTTON:
+//             GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//             GPIO_HIGH(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//             break;
+//
+//      case STATE_ICC_RUN:
+//              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//              BAR0_ON;
+//              BAR1_OFF;
+//              BAR2_OFF;
+//              BAR3_OFF;
+//              break;
+//
+//      case STATE_ICC_LP_RUN:
+//              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//              BAR0_ON;
+//              BAR1_ON;
+//              BAR2_OFF;
+//              BAR3_OFF;
+//              break;
+//
+//      case STATE_ICC_STOP:
+//              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//              BAR0_ON;
+//              BAR1_ON;
+//              BAR2_ON;
+//              BAR3_OFF;
+//              break;
+//
+//      case STATE_ICC_STBY:
+//              GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);
+//              GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+//              BAR0_ON;
+//              BAR1_ON;
+//              BAR2_ON;
+//              BAR3_ON;
+//              break;
+//    }
 }
 
 void EXTI0_IRQHandler(void)

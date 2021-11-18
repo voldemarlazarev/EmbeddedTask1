@@ -38,6 +38,9 @@ extern bool UserButton;               /* Set by interrupt handler to indicate th
 uint8_t state_machine;                /* Machine status used by main() wich indicats the active function, set by user button in interrupt handler */
 uint16_t Int_CurrentSTBY;             /* */
 
+extern uint32_t swipeTimeLimit;
+extern bool swipeTimeLimitChanged;
+
 #ifdef STM32L1XX_MDP
   uint8_t message[29] = "     ** 32L152CDISCOVERY  **";
 	#else
@@ -189,7 +192,7 @@ int main(void)
   GPIO_HIGH(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
   GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
   /* Set application state machine to VREF state  */
-  state_machine = STATE_VREF ;
+  state_machine = STATE_SLIDER_VALUE ;
   /*Until application reset*/
   while (1)
   {
@@ -209,6 +212,29 @@ int main(void)
         
         /* Slider Value State : Display the TS slider value */
         case STATE_SLIDER_VALUE:
+
+        	if (swipeTimeLimitChanged) {
+        		swipeTimeLimitChanged = FALSE;
+
+        		uint16_t Message[6];
+        		Message[0] = ' ';
+        		Message[1] = ' ';
+        		Message[2] = ' ';
+        		Message[3] = ' ';
+        		Message[4] = ' ';
+        		Message[5] = ' ';
+        		convert_into_char(swipeTimeLimit, Message);
+        		/*Add "%" in message*/
+
+//        		Message[3] = (result == SWD_WAITING) ? 'N' :
+//        				(result == SWD_CONTINUING_GESTURE_DETECTION) ? 'D': ' ';
+//        		Message[4] = (result == SWD_GESTURE_CANCELLED) ? 'C' : ' ';
+//        		Message[5] = (nFinished > 0) ? (0x30+(nFinished%10)) : ' ';
+
+        		/*Display message*/
+        		LCD_GLASS_DisplayStrDeci(Message);
+        		Delay(500);
+        	}
 
         // Execute STMTouch Driver state machine
         if (TSL_user_Action() == TSL_STATUS_OK)
