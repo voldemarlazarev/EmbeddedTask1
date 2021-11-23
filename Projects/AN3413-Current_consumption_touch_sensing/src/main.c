@@ -38,6 +38,18 @@ extern bool UserButton;               /* Set by interrupt handler to indicate th
 uint8_t state_machine;                /* Machine status used by main() wich indicats the active function, set by user button in interrupt handler */
 uint16_t Int_CurrentSTBY;             /* */
 
+void Timers_Init() {
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	TIM_TimeBaseInitTypeDef timerInitStructure;
+	timerInitStructure.TIM_Prescaler = 40000 - 1;
+	timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	timerInitStructure.TIM_Period = 500;
+	timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+//	timerInitStructure.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseInit(TIM2, &timerInitStructure);
+	TIM_Cmd(TIM2, ENABLE);
+}
+
 extern uint32_t swipeTimeLimit;
 extern bool swipeTimeLimitChanged;
 
@@ -134,12 +146,19 @@ int main(void)
 
   /* user button actif */  
   UserButton = TRUE;
+
+  /* Init timers */
+  Timers_Init();
   	 
   /* Check if User button press at Power ON  */	
   if ((USERBUTTON_GPIO_PORT->IDR & USERBUTTON_GPIO_PIN) != 0x0)
   {
     /* Measure operational amplifier bias current and store value in E�Prom for application need*/
     Bias_measurement();
+  }
+
+  while(TRUE) {
+
   }
 
   /* Standard application startup */
