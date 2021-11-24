@@ -27,6 +27,9 @@
 #include "stm32l1xx.h"
 #include "discover_board.h"
 #include "stm32l_discovery_lcd.h"
+
+//#include "stm32l1xx_hal.h"
+
 #include <stdio.h>
 
 /* Touch sensing driver headers */
