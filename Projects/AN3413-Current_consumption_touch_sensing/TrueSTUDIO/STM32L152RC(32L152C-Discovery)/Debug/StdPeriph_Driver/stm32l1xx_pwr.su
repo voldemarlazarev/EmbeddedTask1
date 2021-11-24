@@ -8,7 +8,7 @@ stm32l1xx_pwr.c:308:6:PWR_UltraLowPowerCmd	0	static
 stm32l1xx_pwr.c:405:6:PWR_VoltageScalingConfig	0	static
 stm32l1xx_pwr.c:587:6:PWR_EnterLowPowerRunMode	0	static
 stm32l1xx_pwr.c:620:6:PWR_EnterSleepMode	0	static,ignoring_inline_asm
-stm32l1xx_pwr.c:676:6:PWR_EnterSTOPMode	0	static,ignoring_inline_asm
-stm32l1xx_pwr.c:723:6:PWR_EnterSTANDBYMode	0	static,ignoring_inline_asm
-stm32l1xx_pwr.c:783:12:PWR_GetFlagStatus	0	static
-stm32l1xx_pwr.c:809:6:PWR_ClearFlag	0	static
+stm32l1xx_pwr.c:678:6:PWR_EnterSTOPMode	0	static,ignoring_inline_asm
+stm32l1xx_pwr.c:727:6:PWR_EnterSTANDBYMode	0	static,ignoring_inline_asm
+stm32l1xx_pwr.c:785:12:PWR_GetFlagStatus	0	static
+stm32l1xx_pwr.c:811:6:PWR_ClearFlag	0	static
