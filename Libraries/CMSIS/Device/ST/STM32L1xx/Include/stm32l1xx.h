@@ -204,9 +204,6 @@ typedef enum
   * @}
   */
 
-#ifdef USE_STDPERIPH_DRIVER
-  #include "stm32l1xx_conf.h"
-#endif
 
 /** @addtogroup Exported_macros
   * @{
