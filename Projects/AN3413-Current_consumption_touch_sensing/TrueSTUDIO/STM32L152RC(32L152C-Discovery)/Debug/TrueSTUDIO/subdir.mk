@@ -18,3 +18,10 @@ S_DEPS += \
 TrueSTUDIO/startup_stm32l1xx_mdp.o: H:/Documents/Embedded/STM32L-Discovery_FW_Pack_2/STM32L-Discovery_FW_Pack/Libraries/CMSIS/Device/ST/STM32L1xx/Source/Templates/TrueSTUDIO/startup_stm32l1xx_mdp.s TrueSTUDIO/subdir.mk
 	arm-none-eabi-gcc -c -mcpu=cortex-m3 -g3 -c -x assembler-with-cpp -MMD -MP -MF"TrueSTUDIO/startup_stm32l1xx_mdp.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@" "$<"
 
+clean: clean-TrueSTUDIO
+
+clean-TrueSTUDIO:
+	-$(RM) ./TrueSTUDIO/startup_stm32l1xx_mdp.d ./TrueSTUDIO/startup_stm32l1xx_mdp.o
+
+.PHONY: clean-TrueSTUDIO
+
