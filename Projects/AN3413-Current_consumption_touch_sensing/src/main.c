@@ -38,16 +38,40 @@ extern bool UserButton;               /* Set by interrupt handler to indicate th
 uint8_t state_machine;                /* Machine status used by main() wich indicats the active function, set by user button in interrupt handler */
 uint16_t Int_CurrentSTBY;             /* */
 
-void Timers_Init() {
+void Timers_Init()
+{
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 	TIM_TimeBaseInitTypeDef timerInitStructure;
-	timerInitStructure.TIM_Prescaler = 40000 - 1;
+	timerInitStructure.TIM_Prescaler = 16000 - 1;
 	timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	timerInitStructure.TIM_Period = 500;
+	timerInitStructure.TIM_Period = 1000 - 1;
 	timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 //	timerInitStructure.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM2, &timerInitStructure);
 	TIM_Cmd(TIM2, ENABLE);
+}
+
+void Enable_Timer_Interrupt()
+{
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+
+	NVIC_InitTypeDef nvicStructure;
+	nvicStructure.NVIC_IRQChannel = TIM2_IRQn;
+	nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	nvicStructure.NVIC_IRQChannelSubPriority = 1;
+	nvicStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&nvicStructure);
+}
+
+void TIM2_IRQHandler()
+{
+	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
+		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+//		if (timerValue <= 500 )
+		GPIO_TOGGLE(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);
+//						else
+//							GPIO_HIGH(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);
+	}
 }
 
 extern uint32_t swipeTimeLimit;
@@ -150,6 +174,9 @@ int main(void)
   /* Init timers */
   Timers_Init();
 
+  /* Enable timer interrupt */
+  Enable_Timer_Interrupt();
+
   /* Check if User button press at Power ON  */
   if ((USERBUTTON_GPIO_PORT->IDR & USERBUTTON_GPIO_PIN) != 0x0)
   {
@@ -157,9 +184,6 @@ int main(void)
     Bias_measurement();
   }
 
-  while(TRUE) {
-
-  }
 
   /* Standard application startup */
   if ( !StanbyWakeUp )
@@ -212,6 +236,8 @@ int main(void)
   GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);	
   /* Set application state machine to VREF state  */
   state_machine = STATE_SLIDER_VALUE ;
+
+  int maxTimerValue = 0;
   /*Until application reset*/
   while (1)
   {
@@ -231,6 +257,16 @@ int main(void)
         
         /* Slider Value State : Display the TS slider value */
         case STATE_SLIDER_VALUE:
+			{
+				int timerValue = TIM_GetCounter(TIM2);
+				if (timerValue > maxTimerValue)
+					maxTimerValue = timerValue;
+
+//				if (timerValue <= 500 )
+//					GPIO_LOW(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);
+//				else
+//					GPIO_HIGH(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);
+			}
 
         	if (swipeTimeLimitChanged) {
         		swipeTimeLimitChanged = FALSE;
